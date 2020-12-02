@@ -3,8 +3,8 @@ import Data.List.Split
 xor a b = (a || b) && (not $ a && b)
 
 p ((low, high), letter, pass) = 
-  if ((low > length pass - 1) || ((pass!!(low - 1)) == letter)) `xor`
-    ((low > length pass - 1)  || ((pass !! (high - 1)) == letter)) 
+  if ((pass !! (low - 1))  == letter) `xor`
+     ((pass !! (high - 1)) == letter)
   then 1 else 0
 
 sepEntries spls = do
