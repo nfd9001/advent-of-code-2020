@@ -7,3 +7,4 @@ and I'm probably not going to beautify these solutions up much.
 
 Uses: 
 * split-0.2.3.4
+* matrix-0.3.6.1
