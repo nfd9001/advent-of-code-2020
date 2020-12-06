@@ -23,8 +23,9 @@ lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
 -- ===========================================================================
--- day 1
+-- pt. 1
 -- ===========================================================================
+type DumbPassport = (Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String)
 
 entryToDumbPassport = runParser dumbPassportParser ""
 
@@ -45,7 +46,7 @@ checkDumbPassport ((Just _),(Just _),(Just _),(Just _),(Just _),(Just _),(Just _
 checkDumbPassport _ = False
 
 -- ===========================================================================
---   day2 
+-- pt. 2 
 -- ===========================================================================
 type BirthYear = Integer
 type IssueYear = Integer
@@ -59,7 +60,6 @@ type CountryID = String --expected Integer later
 data Passport = P BirthYear IssueYear ExpirationYear
   Height HairColor EyeColor PassportID
   (Maybe CountryID) deriving Show
-type DumbPassport = (Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String, Maybe String)
 
 entryToPassport = runParser passportParser ""
 
