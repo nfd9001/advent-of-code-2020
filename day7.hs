@@ -62,7 +62,7 @@ main = do
   let (graph, nFV, vFK) = graphFromEdges cNoN
   let start = fromJust $ vFK "shiny gold"
   let graph' = transposeG graph
-  print $ length $ reachable graph' start
+  print $ (length $ reachable graph' start) - 1
   --p2
   let s = M.fromList constraints 
   let solveChildren key = 
