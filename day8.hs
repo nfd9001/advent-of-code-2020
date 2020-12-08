@@ -70,7 +70,6 @@ getAcc2 ma@(Machine acc ip m) =
     then Just acc
     else getAcc2 (doStep ma)
 
-
 getAllPrograms :: Memory -> [Memory]
 getAllPrograms m = do
   i <- [0..(snd $ bounds m)]
@@ -80,10 +79,9 @@ getAllPrograms m = do
     isFlippable (Nop _) = True
     isFlippable _       = False
     flipIns (Jmp a) = Nop a
-    flipIns (Nop a) = Acc a
+    flipIns (Nop a) = Jmp a
    in
     if isFlippable ins then [m//[(i,Unvisited $ flipIns ins)]] else []
-
 
 main = do
   f <- readFile "inputs/day8.txt"
@@ -97,5 +95,5 @@ main = do
   --pt. 2
   let mems = getAllPrograms memory
   let machines = (Machine 0 0) <$> mems
-  print $ fromJust $ find (isJust) $ getAcc2 <$> machines
+  print $ fromJust $ fromJust $ find (isJust) $ getAcc2 <$> machines
    
