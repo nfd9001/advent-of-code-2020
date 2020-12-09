@@ -1,7 +1,8 @@
 import Data.List
 import Data.Functor
 import Control.Applicative
-import Data.Array
+import Data.Sequence (Seq, (<|), (|>), (><))
+import qualified Data.Sequence as Seq
 import Data.Either
 import Data.Maybe
 import Text.Megaparsec
@@ -9,10 +10,10 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Data.Void
 
-data Instruction = Acc Integer | Jmp Integer | Nop Integer | Hal deriving Show
+data Instruction = Acc Int | Jmp Int | Nop Int | Hal deriving Show
 data InstructionV = Visited Instruction | Unvisited Instruction deriving Show
-type Register = Integer
-type Memory   = Array Register InstructionV
+type Register = Int
+type Memory   = Seq InstructionV
 data Machine  = Machine Register Register Memory --acc, ip
 
 unwrap (Visited a) = a
@@ -45,16 +46,17 @@ toInstruction = runParser pInstruction ""
 
 doStep (Machine acc ip m) =
   let
-    ins = unwrap $ m ! ip
-    h (Nop n) = (Machine acc (succ ip) (m//[(ip, Visited ins)]))
-    h (Acc n) = (Machine (acc + n) (succ ip) (m//[(ip, Visited ins)]))
-    h (Jmp n) = (Machine acc (ip + n) (m//[(ip, Visited ins)]))
+    ins = unwrap $ Seq.index m ip
+    m'    = (Seq.update ip (Visited ins) m) 
+    h (Nop n) = (Machine acc (succ ip) m')
+    h (Acc n) = (Machine (acc + n) (succ ip) m')
+    h (Jmp n) = (Machine acc (ip + n) m')
   in h ins
     
 getAcc1 :: Machine -> Register 
 getAcc1 ma@(Machine acc ip m) = 
   if
-    (isVisited $ m!ip)
+    (isVisited $ Seq.index m ip)
   then 
     acc
   else getAcc1 (doStep ma)
@@ -62,18 +64,18 @@ getAcc1 ma@(Machine acc ip m) =
 getAcc2 :: Machine -> Maybe Register 
 getAcc2 ma@(Machine acc ip m) = 
   if
-    ip < 0 || ip > (snd $ bounds m) || (isVisited $ m!ip)
+    ip < 0 || ip > Seq.length m - 1 || (isVisited $ Seq.index m ip)
   then 
     Nothing
   else 
-    if   (isHal $ unwrap $ m!ip)
+    if   (isHal $ unwrap $ Seq.index m ip)
     then Just acc
     else getAcc2 (doStep ma)
 
 getAllPrograms :: Memory -> [Memory]
 getAllPrograms m = do
-  i <- [0..(snd $ bounds m)]
-  let ins = unwrap $ m!i
+  i <- [0..Seq.length m - 1]
+  let ins = unwrap $ Seq.index m i
   let 
     isFlippable (Jmp _) = True
     isFlippable (Nop _) = True
@@ -81,13 +83,13 @@ getAllPrograms m = do
     flipIns (Jmp a) = Nop a
     flipIns (Nop a) = Jmp a
    in
-    if isFlippable ins then [m//[(i,Unvisited $ flipIns ins)]] else []
+    if isFlippable ins then [Seq.update i (Unvisited $ flipIns ins) m] else []
 
 main = do
   f <- readFile "inputs/day8.txt"
   let ls = lines f
   let instructions = ((Unvisited . fromRight undefined . toInstruction) <$> ls) ++ [Unvisited Hal]
-  let memory = listArray (0::Integer, (fromIntegral $ length instructions) - 1) instructions
+  let memory = Seq.fromList instructions
   -- pt. 1
   let initm = (Machine 0 0 memory)
   print $ getAcc1 initm
