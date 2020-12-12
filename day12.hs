@@ -1,15 +1,12 @@
 import Data.List
 import Data.Functor
 import Control.Applicative
-import qualified Data.Set as Set
 import qualified Data.Either as Either
-import Data.Maybe
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Data.Void
 import Control.Monad
-import Control.Applicative.Permutations
 
 -- ===========================================================================
 -- Data
@@ -17,7 +14,6 @@ import Control.Applicative.Permutations
 
 type Parser = Parsec Void String
 
-data Place = Floor | Empty | Occupied deriving (Eq, Show) 
 data Heading = North | South | East | West deriving (Eq, Show)
 data Turn = TLeft | TRight deriving (Eq, Show)
 data Action = T Turn | H Heading | Forward deriving (Eq, Show)
@@ -38,12 +34,10 @@ getInstruction = runParser parseInstruction ""
 -- ===========================================================================
 -- Helpers
 -- ===========================================================================
-
-rottimes x = if (x `mod` 90) /= 0 then error $ "bad angle spec " ++ (show x) else x `div` 90
+rottimes x = x `div` 90
 
 solve f s (i:is) = solve f (f s i) is
 solve _ s [] = s
-
 
 -- ===========================================================================
 -- pt. 1
@@ -60,13 +54,11 @@ rights = cycle [North, East, South, West]
 rotate :: Heading -> Instruction -> Heading
 rotate dir ((T TLeft), x)  = head $ drop (rottimes x) $ dropWhile (/= dir) lefts
 rotate dir ((T TRight), x) = head $ drop (rottimes x) $ dropWhile (/= dir) rights
-rotate dir _               = error "Tried to rotate on a non-turn"
 
 goH s North = goNorth s
 goH s South = goSouth s
 goH s East  = goEast  s
 goH s West  = goWest  s
---goH s@(h, _, _) Forward = goH s h
 
 goNorth (h, x, y) n = (h, x+n, y)
 goSouth (h, x, y) n = (h, x-n, y)
