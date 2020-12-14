@@ -36,9 +36,6 @@ getInstruction = runParser parseInstruction ""
 -- ===========================================================================
 rottimes x = x `div` 90
 
-solve f s (i:is) = solve f (f s i) is
-solve _ s [] = s
-
 -- ===========================================================================
 -- pt. 1
 -- ===========================================================================
@@ -103,8 +100,8 @@ main = do
   f <- readFile "inputs/day12.txt"
   let ls = lines f
   let ins = Either.fromRight undefined . getInstruction <$> ls
-  let (_, x , y ) = solve go  (East, 0, 0) ins
+  let (_, x , y ) = foldl' go  (East, 0, 0) ins
   print $ (abs x ) + (abs y )
 
-  let (_, x1, y1) = solve go2 ((10,1), 0, 0) ins
+  let (_, x1, y1) = foldl' go2 ((10,1), 0, 0) ins
   print $ (abs x1) + (abs y1)
