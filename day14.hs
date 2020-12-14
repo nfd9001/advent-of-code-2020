@@ -47,11 +47,6 @@ pStatement = (pMask <|> pWrite) <* eof
 
 getStatement s = fromRight undefined $ runParser pStatement "" s
 
--- I really feel like this function probably already has a name; if you're
--- reading this and know what that is, please fill me in; XOXO
-solve f i (x:xs) = solve f (f i x) xs
-solve _ i []     = i
-
 -- ===========================================================================
 -- pt. 1
 -- ===========================================================================
@@ -89,7 +84,7 @@ writeS2 :: MState2 -> Address -> MWord -> MState2
 writeS2 (mem, getAddrs) addr w =
   let 
     addrs = getAddrs addr
-  in (solve (\m k -> Map.insert k w m) mem addrs, getAddrs)
+  in (foldl' (\m k -> Map.insert k w m) mem addrs, getAddrs)
 
 setMask2 (mem, _) mes = (mem, getWriteAddrsForMask mes)
 
@@ -104,8 +99,8 @@ getWriteAddrsForMask mes add =
                     addrs >>= (
                     \addr -> [setBit addr offset, clearBit addr offset]))
                     . snd <$> floatingRules) :: [[Address] -> [Address]]
-    addr' = solve (flip ($)) add writeOneFuns
-    addrs = solve (flip ($)) [addr'] floatingFuns
+    addr' = foldl' (flip ($)) add writeOneFuns
+    addrs = foldl' (flip ($)) [addr'] floatingFuns
   in addrs
 
 -- ===========================================================================
@@ -114,10 +109,10 @@ main = do
   let ls = lines f
   let sts = getStatement <$> ls
   let init = (Map.empty, [])
-  let ans = Map.toList $ fst $ solve handleStatement init sts
+  let ans = Map.toList $ fst $ foldl' handleStatement init sts
   print $ sum $ snd <$> ans
 
   let init2 = (Map.empty, \a -> [a])
-  let ans2 = Map.toList $ fst $ solve handleStatement2 init2 sts
+  let ans2 = Map.toList $ fst $ foldl' handleStatement2 init2 sts
   print $ sum $ snd <$> ans2
 
