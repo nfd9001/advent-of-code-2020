@@ -57,7 +57,7 @@ handleStatement m (Write a w) = writeS m a w
 handleStatement m (Mask mes)  = setMask m mes
 
 writeS :: MState -> Address -> MWord -> MState
-writeS (mem, mas) a w = (Map.insert a (runMask w mas) mem, mas)
+writeS (mem, mas) a w = (Map.insert a (foldl' (flip ($)) w mas) mem, mas)
 
 setMask (mem, _) mes = (mem, maskToFuns mes)
 
@@ -67,9 +67,6 @@ maskToFuns mes  =
     t (One, n) = flip setBit n
     t (Zero, n) = flip clearBit n
   in t <$> p
-
-runMask n (f:fs) = runMask (f n) fs
-runMask n []     = n 
 
 -- ===========================================================================
 -- pt. 2
