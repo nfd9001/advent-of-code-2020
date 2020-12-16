@@ -47,6 +47,7 @@ pField = do
   
 getTicket s = fromRight undefined $ runParser pTicket "" s
 getField  s = fromRight undefined $ runParser pField "" s 
+
 -- ===========================================================================
 -- pt. 1
 -- ===========================================================================
@@ -80,16 +81,13 @@ reduceSolved cs =
     (optss, solves) = partition (isOpts . fst) (zip cs [0..])
     tryRemove (Opts os, n) (Solve s, _) = (toConstraint $ delete s os, n)
     tryRemove done@(Solve _, _) _       = done
-  --in trace (show cs ++ "\n\n") (if length optss == 0 then cs
   in if length optss == 0 then cs
      else reduceSolved $ fst <$> sortOn snd (solves ++
             do
               opts  <- optss
               pure $ foldl' (tryRemove) opts solves)
 
-    
 -- ===========================================================================
-
 main = do
   f <- readFile "inputs/day16.txt"
   let ls = lines f
